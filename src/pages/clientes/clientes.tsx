@@ -49,46 +49,24 @@ export default function Clientes() {
           dataField={"_id.value"}
           width={90}
           caption={"Id"}
-          hidingPriority={2}
           visible={false}
           allowEditing={false}
           formItem={{ visible: false }}
         />
+        <Column dataField={"props.nome"} width={190} caption={"Nome"} />
+        <Column dataField={"props.email"} caption={"E-mail"} />
+        <Column dataField={"props.genero"} caption={"Gênero"} />
+        <Column dataField={"props.telefone"} caption={"Telefone"} />
+        <Column dataField={"props.endereco"} caption={"Endereço"} />
+        <Column dataField={"props.cidade"} caption={"Cidade"} />
+        <Column dataField={"props.estado"} caption={"Estado"} />
+        <Column dataField={"props.cep"} caption={"Cep"} />
+        <Column dataField={"props.cpf"} caption={"CPF"} />
         <Column
-          dataField={"props.nome"}
-          width={190}
-          caption={"Nome"}
-          hidingPriority={8}
-        />
-        <Column
-          dataField={"props.email"}
-          caption={"E-mail"}
-          hidingPriority={6}
-        />
-        <Column
-          dataField={"props.genero"}
-          caption={"Gênero"}
-          hidingPriority={5}
-        />
-        <Column
-          dataField={"props.telefone"}
-          caption={"Telefone"}
-          hidingPriority={7}
-        />
-        <Column
-          dataField={"props.endereco"}
-          caption={"Endereço"}
-          hidingPriority={3}
-        />
-        <Column
-          dataField={"props.cidade"}
-          caption={"Cidade"}
-          hidingPriority={4}
-        />
-        <Column
-          dataField={"props.estado"}
-          caption={"Estado"}
-          hidingPriority={1}
+          dataField={"props.dataEvento"}
+          caption={"Data do Evento"}
+          dataType={"date"}
+          format={"dd/MM/yyyy"}
         />
       </DataGrid>
     </React.Fragment>
@@ -100,13 +78,26 @@ const baseUrl = process.env.REACT_APP_API_URL;
 const store = new CustomStore({
   key: "_id.value",
   load: async (loadOptions) => {
-    return await axios.get(`${baseUrl}/clientes`).then((data) => {
-      return data;
-    });
+    return await axios
+      .get(`${baseUrl}/clientes`)
+      .then((data) => {
+        console.log(
+          "🚀 ~ file: clientes.tsx:121 ~ returnawaitaxios.get ~ data:",
+          data
+        );
+        return data;
+      })
+      .catch((err) => {
+        if (err) {
+          const data = err.response.data.message;
+          if (data.length > 1) {
+            throw new Error(data.toUpperCase());
+          }
+          throw new Error(data.toUpperCase());
+        }
+      });
   },
   insert: async ({ props }) => {
-    console.log("🚀 ~ file: clientes.tsx:108 ~ insert: ~ values:", props);
-
     return axios
       .post(`${baseUrl}/clientes`, props)
       .then((data) => data)
@@ -120,8 +111,16 @@ const store = new CustomStore({
         }
       });
   },
-  update: (key, {props}) => {
-    return axios.patch(`${baseUrl}/clientes/${key}`, props);
+  update: (key, { props }) => {
+    return axios.patch(`${baseUrl}/clientes/${key}`, props).catch((err) => {
+      if (err) {
+        const data = err.response.data.message;
+        if (data.length > 1) {
+          throw new Error(data.toUpperCase());
+        }
+        throw new Error(data.toUpperCase());
+      }
+    });
   },
   remove: (key) => {
     return axios.delete(`${baseUrl}/clientes/${key}`);
