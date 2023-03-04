@@ -5,10 +5,27 @@ export async function signIn(email: string, password: string) {
   try {
     // Send request
     console.log(email, password);
+    
+    const {data: {token, usuarioId}} = await AxiosClient.getInstance().post("/autorizacao/login", {
+      email,
+      password,
+    });
+
+    //Add token to local storage
+    localStorage.setItem("token", JSON.stringify(token));
+
+    const user = await AxiosClient.getInstance().get(`/usuarios/${usuarioId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return {
       isOk: true,
-      data: defaultUser,
+      data: {
+        email: user.data.props.email,
+        avatarUrl: user.data.props.avatarUrl || "",
+      },
     };
   } catch {
     return {
@@ -21,10 +38,21 @@ export async function signIn(email: string, password: string) {
 export async function getUser() {
   try {
     // Send request
+    //Get Token from local storage
+    const token = JSON.parse(localStorage.getItem("token") || "");
+
+    const result = await AxiosClient.getInstance().get("/autorizacao/usuario", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return {
       isOk: true,
-      data: defaultUser,
+      data: {
+        email: result.data.props.email,
+        avatarUrl: result.data.props.avatarUrl || "",
+      },
     };
   } catch {
     return {
