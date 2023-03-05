@@ -1,3 +1,4 @@
+import { AxiosError, AxiosResponse } from "axios";
 import defaultUser from "../utils/default-user";
 import { AxiosClient } from "./axiosClient";
 
@@ -5,14 +6,17 @@ export async function signIn(email: string, password: string) {
   try {
     // Send request
     console.log(email, password);
-    
-    const {data: {token, usuarioId}} = await AxiosClient.getInstance().post("/autorizacao/login", {
+
+    const {
+      data: { token, usuarioId },
+    } = await AxiosClient.getInstance().post("/autorizacao/login", {
       email,
       password,
     });
 
     //Add token to local storage
     localStorage.setItem("token", JSON.stringify(token));
+    localStorage.setItem("usuarioId", JSON.stringify(usuarioId));
 
     const user = await AxiosClient.getInstance().get(`/usuarios/${usuarioId}`, {
       headers: {
@@ -27,10 +31,10 @@ export async function signIn(email: string, password: string) {
         avatarUrl: user.data.props.avatarUrl || "",
       },
     };
-  } catch {
+  } catch (error: AxiosError | any) {
     return {
       isOk: false,
-      message: "Authentication failed",
+      message: error.response.data.message,
     };
   }
 }
@@ -40,8 +44,9 @@ export async function getUser() {
     // Send request
     //Get Token from local storage
     const token = JSON.parse(localStorage.getItem("token") || "");
+    const usuarioId = JSON.parse(localStorage.getItem("usuarioId") || "");
 
-    const result = await AxiosClient.getInstance().get("/autorizacao/usuario", {
+    const result = await AxiosClient.getInstance().get(`/usuarios/${usuarioId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -54,25 +59,47 @@ export async function getUser() {
         avatarUrl: result.data.props.avatarUrl || "",
       },
     };
-  } catch {
+  } catch (error: AxiosError | any){
+    if(error instanceof AxiosError){
+      if(error.response) {
+        return {
+          isOk: false,
+          message: error.response.data.message,
+        };
+      }
+    }
     return {
       isOk: false,
+      message: error.message,
     };
   }
 }
 
-export async function createAccount(email: string, password: string) {
+export async function createAccount(
+  nome: string,
+  email: string,
+  password: string,
+  passwordConfirm: string
+) {
   try {
     // Send request
-    console.log(email, password);
 
+    const result = await AxiosClient.getInstance().post("/usuarios/cadastro", {
+      nome,
+      email,
+      password,
+      passwordConfirm,
+    });
+
+    console.log(result)
+    
     return {
       isOk: true,
     };
-  } catch {
+  } catch (error: AxiosError | any) {
     return {
       isOk: false,
-      message: "Failed to create account",
+      message: error.response.data.message,
     };
   }
 }

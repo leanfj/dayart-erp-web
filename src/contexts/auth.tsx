@@ -27,6 +27,8 @@ function AuthProvider(props: React.PropsWithChildren<unknown>) {
   }, []);
 
   const signOut = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuarioId');
     setUser(undefined);
   }, []);
 

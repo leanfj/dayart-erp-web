@@ -79,12 +79,12 @@ const store = new CustomStore({
   key: "_id.value",
   load: async (loadOptions) => {
     return await axios
-      .get(`${baseUrl}/clientes`)
+      .get(`${baseUrl}/clientes`, {
+        headers: {
+          "authorization": `Bearer ${JSON.parse(localStorage.getItem("token") || "")}`,
+        },
+      })
       .then((data) => {
-        console.log(
-          "🚀 ~ file: clientes.tsx:121 ~ returnawaitaxios.get ~ data:",
-          data
-        );
         return data;
       })
       .catch((err) => {
