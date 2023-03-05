@@ -1,28 +1,21 @@
-import { HomePage, TasksPage, ProfilePage, ClientesPage } from './pages';
-import { withNavigationWatcher } from './contexts/navigation';
+import { HomePage, ClientesPage } from "./pages";
+import { withNavigationWatcher } from "./contexts/navigation";
 
 const routes = [
-    {
-        path: '/clientes',
-        element: ClientesPage
-    },
-    {
-        path: '/tasks',
-        element: TasksPage
-    },
-    {
-        path: '/profile',
-        element: ProfilePage
-    },
-    {
-        path: '/home',
-        element: HomePage
-    }
+  {
+    path: "/clientes",
+    element: ClientesPage,
+  },
+
+  {
+    path: "/home",
+    element: HomePage,
+  },
 ];
 
-export default routes.map(route => {
-    return {
-        ...route,
-        element: withNavigationWatcher(route.element, route.path)
-    };
+export default routes.map((route) => {
+  return {
+    ...route,
+    element: withNavigationWatcher(route.element, route.path),
+  };
 });

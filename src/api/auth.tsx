@@ -5,8 +5,6 @@ import { AxiosClient } from "./axiosClient";
 export async function signIn(email: string, password: string) {
   try {
     // Send request
-    console.log(email, password);
-
     const {
       data: { token, usuarioId },
     } = await AxiosClient.getInstance().post("/autorizacao/login", {
@@ -104,10 +102,14 @@ export async function createAccount(
   }
 }
 
-export async function changePassword(email: string, recoveryCode?: string) {
+export async function changePassword(password: string, token: string, usuarioId: string) {
   try {
     // Send request
-    console.log(email, recoveryCode);
+    const result = await AxiosClient.getInstance().post("/autorizacao/resetPassword", {
+      password,
+      token,
+      usuarioId
+    });
 
     return {
       isOk: true,
@@ -123,7 +125,9 @@ export async function changePassword(email: string, recoveryCode?: string) {
 export async function resetPassword(email: string) {
   try {
     // Send request
-    console.log(email);
+    const result = await AxiosClient.getInstance().post("/autorizacao/requestResetPassword", {
+      email
+    });
 
     return {
       isOk: true,

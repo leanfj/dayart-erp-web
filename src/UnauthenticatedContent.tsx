@@ -33,7 +33,7 @@ export default function UnauthenticatedContent() {
         }
       />
       <Route
-        path='/change-password/:recoveryCode'
+        path='/change-password'
         element={
           <SingleCard title="Change Password">
             <ChangePasswordForm />

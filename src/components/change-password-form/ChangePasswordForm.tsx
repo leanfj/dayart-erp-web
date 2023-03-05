@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams} from 'react-router-dom';
 import Form, {
   Item,
   Label,
@@ -13,18 +13,27 @@ import notify from 'devextreme/ui/notify';
 import { ValidationType } from '../../types';
 import { changePassword } from '../../api/auth';
 
+function useQuery() {
+  const { search } = useLocation();
+
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+
 export default function ChangePasswordForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const formData = useRef({ password: '' });
-  const { recoveryCode } = useParams();
+  let query = useQuery();
+
+  const token = query.get('token') || "";
+  const usuarioId = query.get('usuarioId') || "";
 
   const onSubmit = useCallback(async (e: any) => {
     e.preventDefault();
     const { password } = formData.current;
     setLoading(true);
 
-    const result = await changePassword(password, recoveryCode);
+    const result = await changePassword(password, token, usuarioId);
     setLoading(false);
 
     if (result.isOk) {
@@ -32,7 +41,7 @@ export default function ChangePasswordForm() {
     } else {
       notify(result.message, 'error', 2000);
     }
-  }, [navigate, recoveryCode]);
+  }, [navigate, token]);
 
   const confirmPassword = useCallback(
     ({ value }: ValidationType) => value === formData.current.password,
