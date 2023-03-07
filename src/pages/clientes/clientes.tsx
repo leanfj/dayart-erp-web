@@ -32,7 +32,7 @@ export default function Clientes() {
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />
         <Editing
-          mode="form"
+          mode="popup"
           allowUpdating={true}
           allowDeleting={true}
           allowAdding={true}
