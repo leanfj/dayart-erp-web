@@ -1,5 +1,5 @@
 const appInfo = {
-    title: 'DayArt - ERP'
+    title: 'Day Art - ERP'
 };
 export default appInfo;
 

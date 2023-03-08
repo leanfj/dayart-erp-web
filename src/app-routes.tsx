@@ -1,15 +1,18 @@
-import { HomePage, ClientesPage } from "./pages";
+import { HomePage, ClientesPage, ProdutosPage } from "./pages";
 import { withNavigationWatcher } from "./contexts/navigation";
 
 const routes = [
   {
+    path: "/home",
+    element: HomePage,
+  },
+  {
     path: "/clientes",
     element: ClientesPage,
   },
-
   {
-    path: "/home",
-    element: HomePage,
+    path: "/produtos",
+    element: ProdutosPage,
   },
 ];
 

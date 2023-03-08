@@ -6,7 +6,7 @@ import { Footer } from './components';
 
 export default function Content() {
   return (
-    <SideNavBarLayout title={appInfo.title}>
+    <SideNavBarLayout title={appInfo.title} >
       <Routes>
         {routes.map(({ path, element }) => (
           <Route

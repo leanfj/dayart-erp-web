@@ -1,5 +1,4 @@
-import { AxiosError, AxiosResponse } from "axios";
-import defaultUser from "../utils/default-user";
+import { AxiosError } from "axios";
 import { AxiosClient } from "./axiosClient";
 
 export async function signIn(email: string, password: string) {
@@ -27,6 +26,7 @@ export async function signIn(email: string, password: string) {
       data: {
         email: user.data.props.email,
         avatarUrl: user.data.props.avatarUrl || "",
+        nome: user.data.props.nome,
       },
     };
   } catch (error: AxiosError | any) {
@@ -55,6 +55,7 @@ export async function getUser() {
       data: {
         email: result.data.props.email,
         avatarUrl: result.data.props.avatarUrl || "",
+        nome: result.data.props.nome,
       },
     };
   } catch (error: AxiosError | any){

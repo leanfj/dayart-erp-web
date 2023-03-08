@@ -5,6 +5,7 @@ import List from 'devextreme-react/list';
 import { useAuth } from '../../contexts/auth';
 import './UserPanel.scss';
 import type { UserPanelProps } from '../../types';
+import logo from '../../images/logo.png';
 
 export default function UserPanel({ menuMode }: UserPanelProps) {
   const { user, signOut } = useAuth();
@@ -31,12 +32,12 @@ export default function UserPanel({ menuMode }: UserPanelProps) {
         <div className={'image-container'}>
           <div
             style={{
-              background: `url(${user!.avatarUrl}) no-repeat #fff`,
+              background: `url(${logo}) no-repeat #fff`,
               backgroundSize: 'cover'
             }}
             className={'user-image'} />
         </div>
-        <div className={'user-name'}>{user!.email}</div>
+        <div className={'user-name'}>{user!.nome}</div>
       </div>
 
       {menuMode === 'context' && (

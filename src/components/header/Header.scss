@@ -11,6 +11,14 @@
   }
 }
 
+.dx-toolbar-item.dx-toolbar-button.header-logo > div > img {
+  width: $side-panel-min-width;
+  text-align: center;
+  padding: 0;
+  width: 50px;
+  height: 50px;
+}
+
 .dx-toolbar.header-toolbar .dx-toolbar-items-container .dx-toolbar-after {
   padding: 0 40px;
 

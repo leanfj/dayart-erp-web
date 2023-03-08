@@ -10,7 +10,13 @@ export const navigation = [
     items: [
       {
         text: 'Clientes',
-        path: '/clientes'
+        path: '/clientes',
+        icon: 'card'
+      },
+      {
+        text: 'Produtos',
+        path: '/produtos',
+        icon: 'product'
       }
     ]
   }

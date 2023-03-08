@@ -22,6 +22,7 @@ export interface UserPanelProps {
 
 export interface User {
     email: string;
+    nome: string;
     avatarUrl: string;
 }
 
