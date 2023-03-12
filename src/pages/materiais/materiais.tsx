@@ -17,7 +17,7 @@ import DataGrid, {
   FormItem,
 } from "devextreme-react/data-grid";
 
-export default function Produtos() {
+export default function Materiais() {
   const formatMonetary = useCallback((value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -30,7 +30,7 @@ export default function Produtos() {
 
   return (
     <React.Fragment>
-      <h2 className={"content-block"}>Produtos</h2>
+      <h2 className={"content-block"}>materiais</h2>
 
       <DataGrid
         className={"dx-card wide-card"}
@@ -54,7 +54,7 @@ export default function Produtos() {
           confirmDelete={true}
           useIcons={true}
         >
-          <Popup showTitle={true} title="Cadastre o Produto" />
+          <Popup showTitle={true} title="Cadastre o Material" />
         </Editing>
         <FilterRow visible={true} />
 
@@ -71,7 +71,7 @@ export default function Produtos() {
           formItem={{ visible: false }}
         />
         <Column dataField={"props.titulo"} width={"auto"} caption={"Titulo"} />
-        <Column dataField={"props.codigo"} width={"auto"} caption={"Código"} allowEditing={false} />
+        <Column dataField={"props.codigo"} width={"auto"} caption={"Código"} />
         <Column
           dataField={"props.descricao"}
           width={"auto"}
@@ -79,28 +79,18 @@ export default function Produtos() {
         />
 
         <Column
-          dataField={"props.valorVenda"}
+          dataField={"props.valor"}
           width={"auto"}
-          caption={"Valor Venda"}
+          caption={"Valor"}
           dataType={"number"}
           format={formatMonetary}
         />
         <Column
-          dataField={"props.valorCusto"}
+          dataField={"props.unidadeMedida"}
           width={"auto"}
-          caption={"Valor Custo"}
-          dataType={"number"}
+          caption={"Unidade Medida"}
+          dataType={"text"}
           format={formatMonetary}
-        />
-        <Column dataField={"props.materiais"} width={"auto"} caption={"Materiais"}>
-          <FormItem
-            helpText={"Materiais utilizados no produto separado por ;"}
-          />
-        </Column>
-        <Column
-          dataField={"props.prazoProducao"}
-          width={"auto"}
-          caption={"Prazo Producão"}
         />
       </DataGrid>
     </React.Fragment>
@@ -114,7 +104,7 @@ const store = new CustomStore({
   onRemoved: async (key) => {},
   load: async (loadOptions) => {
     return await axios
-      .get(`${baseUrl}/Produtos`, {
+      .get(`${baseUrl}/materiais`, {
         headers: {
           authorization: `Bearer ${JSON.parse(
             localStorage.getItem("token") || ""
@@ -137,7 +127,13 @@ const store = new CustomStore({
 
   insert: async ({ props }) => {
     return axios
-      .post(`${baseUrl}/Produtos`, props)
+      .post(`${baseUrl}/materiais`, props, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
       .then((data) => data)
       .catch((err) => {
         if (err) {
@@ -150,9 +146,14 @@ const store = new CustomStore({
       });
   },
   update: async (key, { props }) => {
-    console.log(props);
     return await axios
-      .patch(`${baseUrl}/Produtos/${key}`, props)
+      .patch(`${baseUrl}/materiais/${key}`, props, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
       .catch((err) => {
         if (err) {
           const data = err.response.data.message;
@@ -164,7 +165,13 @@ const store = new CustomStore({
       });
   },
   remove: async (key) => {
-    return await axios.delete(`${baseUrl}/Produtos/${key}`);
+    return await axios.delete(`${baseUrl}/materiais/${key}`, {
+      headers: {
+        authorization: `Bearer ${JSON.parse(
+          localStorage.getItem("token") || ""
+        )}`,
+      },
+    });
   },
 });
 

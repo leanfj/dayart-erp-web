@@ -53,15 +53,23 @@ export default function Clientes() {
           allowEditing={false}
           formItem={{ visible: false }}
         />
-        <Column dataField={"props.nome"} width={190} caption={"Nome"} />
-        <Column dataField={"props.email"} caption={"E-mail"} />
-        <Column dataField={"props.genero"} caption={"Gênero"} />
-        <Column dataField={"props.telefone"} caption={"Telefone"} />
-        <Column dataField={"props.endereco"} caption={"Endereço"} />
-        <Column dataField={"props.cidade"} caption={"Cidade"} />
-        <Column dataField={"props.estado"} caption={"Estado"} />
-        <Column dataField={"props.cep"} caption={"Cep"} />
-        <Column dataField={"props.cpf"} caption={"CPF"} />
+        <Column dataField={"props.nome"} width={"auto"} caption={"Nome"} />
+        <Column dataField={"props.email"} width={"auto"} caption={"E-mail"} />
+        <Column dataField={"props.genero"} width={"auto"} caption={"Gênero"} />
+        <Column
+          dataField={"props.telefone"}
+          width={"auto"}
+          caption={"Telefone"}
+        />
+        <Column
+          dataField={"props.endereco"}
+          width={"auto"}
+          caption={"Endereço"}
+        />
+        <Column dataField={"props.cidade"} width={"auto"} caption={"Cidade"} />
+        <Column dataField={"props.estado"} width={"auto"} caption={"Estado"} />
+        <Column dataField={"props.cep"} width={"auto"} caption={"Cep"} />
+        <Column dataField={"props.cpf"} width={"auto"} caption={"CPF"} />
         <Column
           dataField={"props.dataEvento"}
           caption={"Data do Evento"}
@@ -81,7 +89,9 @@ const store = new CustomStore({
     return await axios
       .get(`${baseUrl}/clientes`, {
         headers: {
-          "authorization": `Bearer ${JSON.parse(localStorage.getItem("token") || "")}`,
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
         },
       })
       .then((data) => {
@@ -128,10 +138,3 @@ const store = new CustomStore({
 });
 
 const dataSource = new DataSource(store);
-
-const priorities = [
-  { name: "High", value: 4 },
-  { name: "Urgent", value: 3 },
-  { name: "Normal", value: 2 },
-  { name: "Low", value: 1 },
-];

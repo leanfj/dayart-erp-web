@@ -16,7 +16,12 @@ export const navigation = [
       {
         text: 'Produtos',
         path: '/produtos',
-        icon: 'product'
+        icon: 'tags'
+      },
+      {
+        text: 'Materiais',
+        path: '/materiais',
+        icon: 'cut'
       }
     ]
   }
