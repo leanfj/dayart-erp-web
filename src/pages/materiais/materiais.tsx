@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import CustomStore from "devextreme/data/custom_store";
 import DataSource from "devextreme/data/data_source";
@@ -18,6 +18,9 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 
 export default function Materiais() {
+  const [unidadeMedidas, setUnidadeMedidas] = React.useState([]);
+  const [unidadeMedida, setUnidadeMedida] = React.useState("");
+  
   const formatMonetary = useCallback((value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -27,6 +30,38 @@ export default function Materiais() {
       minimumFractionDigits: 2,
     }).format(value);
   }, []);
+
+  const fetchUnidadeMedida = useCallback(async () => {
+    try {
+      const token = JSON.parse(localStorage.getItem("token") || "");
+      const { data } = await axios.get(`${baseUrl}/unidadeMedidas`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUnidadeMedidas(data);
+    } catch (error: AxiosError | any) {
+      if(error instanceof AxiosError){
+        if(error.response) {
+          return {
+            isOk: false,
+            message: error.response.data.message,
+          };
+        }
+      }
+      return {
+        message: error.message,
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnidadeMedida()
+  }, [fetchUnidadeMedida]);
+
+  const onValueChanged = useCallback((e: any) => {
+    setUnidadeMedida(e.value);
+}, []);
 
   return (
     <React.Fragment>
@@ -71,7 +106,12 @@ export default function Materiais() {
           formItem={{ visible: false }}
         />
         <Column dataField={"props.titulo"} width={"auto"} caption={"Titulo"} />
-        <Column dataField={"props.codigo"} width={"auto"} caption={"Código"} />
+        <Column
+          dataField={"props.codigo"}
+          width={"auto"}
+          caption={"Código"}
+          allowEditing={false}
+        />
         <Column
           dataField={"props.descricao"}
           width={"auto"}
@@ -86,12 +126,36 @@ export default function Materiais() {
           format={formatMonetary}
         />
         <Column
-          dataField={"props.unidadeMedida"}
+          dataField={"props.valorUnitario"}
           width={"auto"}
-          caption={"Unidade Medida"}
-          dataType={"text"}
+          caption={"Valor Unitário"}
+          dataType={"number"}
           format={formatMonetary}
         />
+        <Column
+          dataField={"props.quantidade"}
+          width={"auto"}
+          caption={"Quantidade"}
+          dataType={"number"}
+        />
+        <Column
+          caption={"Unidade Medida"}
+          dataField={"props.unidadeMedida.nomenclatura"}
+          visible={true}
+        >
+          <FormItem
+            editorType={"dxSelectBox"}
+            editorOptions={{
+              items: unidadeMedidas,
+              valueExpr: "_id.value",
+              displayExpr: "props.nomenclatura",
+              searchEnabled:  true,
+              searchMode: "contains", 
+              placeholder: "Selecione a unidade de medida",
+              value: unidadeMedida,
+            }}
+          />
+        </Column>
       </DataGrid>
     </React.Fragment>
   );
@@ -112,6 +176,7 @@ const store = new CustomStore({
         },
       })
       .then((data) => {
+        console.log(data)
         return data;
       })
       .catch((err) => {
@@ -125,9 +190,19 @@ const store = new CustomStore({
       });
   },
 
-  insert: async ({ props }) => {
+  insert: async ({props}) => {
+    console.log(props)
+    const input = {
+      titulo: props.titulo,
+      codigo: props.codigo,
+      descricao: props.descricao,
+      valor: props.valor,
+      valorUnitario: props.valorUnitario,
+      quantidade: props.quantidade,
+      unidadeMedidaId: props.unidadeMedida.nomenclatura,
+    }
     return axios
-      .post(`${baseUrl}/materiais`, props, {
+      .post(`${baseUrl}/materiais`, input, {
         headers: {
           authorization: `Bearer ${JSON.parse(
             localStorage.getItem("token") || ""

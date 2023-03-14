@@ -28,6 +28,34 @@ export default function Produtos() {
     }).format(value);
   }, []);
 
+  const [materiais, setMateriais] = React.useState([]);
+
+  React.useEffect(() => {
+    async function fetchData() {
+      await axios
+        .get(`${baseUrl}/materiais`, {
+          headers: {
+            authorization: `Bearer ${JSON.parse(
+              localStorage.getItem("token") || ""
+            )}`,
+          },
+        })
+        .then(({ data }) => {
+          setMateriais(data);
+        })
+        .catch((err) => {
+          if (err) {
+            const data = err.response.data.message;
+            if (data.length > 1) {
+              throw new Error(data.toUpperCase());
+            }
+            throw new Error(data.toUpperCase());
+          }
+        });
+    }
+    fetchData();
+  }, []);
+
   return (
     <React.Fragment>
       <h2 className={"content-block"}>Produtos</h2>
@@ -71,7 +99,12 @@ export default function Produtos() {
           formItem={{ visible: false }}
         />
         <Column dataField={"props.titulo"} width={"auto"} caption={"Titulo"} />
-        <Column dataField={"props.codigo"} width={"auto"} caption={"Código"} allowEditing={false} />
+        <Column
+          dataField={"props.codigo"}
+          width={"auto"}
+          caption={"Código"}
+          allowEditing={false}
+        />
         <Column
           dataField={"props.descricao"}
           width={"auto"}
@@ -92,11 +125,29 @@ export default function Produtos() {
           dataType={"number"}
           format={formatMonetary}
         />
-        <Column dataField={"props.materiais"} width={"auto"} caption={"Materiais"}>
+        {/* <Column dataField={"props.materiais"} width={"auto"} caption={"Materiais"}>
           <FormItem
             helpText={"Materiais utilizados no produto separado por ;"}
           />
+        </Column> */}
+        <Column
+          caption={"Materiais"}
+          dataField="props.materiais"
+          visible={false}
+        >
+          <FormItem
+            editorType={"dxTagBox"}
+            editorOptions={{
+              items: materiais,
+              valueExpr: "id",
+              displayExpr: "nome",
+              showSelectionControls: true,
+              showClearButton: true,
+              placeholder: "Selecione os materiais",
+            }}
+          />
         </Column>
+
         <Column
           dataField={"props.prazoProducao"}
           width={"auto"}
