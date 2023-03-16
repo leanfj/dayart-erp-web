@@ -48,15 +48,11 @@ export default function Materiais() {
       setUnidadeMedidas(
         data.map((item: any) => {
           return {
-            _id: {
-              value: item._id.value,
-            },
-            props: {
-              unidadeMedida: {
-                nomenclatura: item.props.nomenclatura,
-                nome: item.props.nome,
-                categoria: item.props.categoria,
-              },
+            unidadeMedida: {
+              id: item._id.value,
+              nomenclatura: item.props.nomenclatura,
+              nome: item.props.nome,
+              categoria: item.props.categoria,
             },
           };
         })
@@ -96,7 +92,6 @@ export default function Materiais() {
         allowColumnReordering={true}
         width={"100%"}
         onEditingStart={(e) => {
-          console.log(e);
           setUnidadeMedida(e.data.props.unidadeMedida);
         }}
       >
@@ -119,21 +114,13 @@ export default function Materiais() {
             <SimpleItem dataField={"props.valorUnitario"} />
             <SimpleItem dataField={"props.quantidade"} />
             <SimpleItem
-              dataField={"props.unidadeMedida.nomenclatura"}
+              dataField={"props.unidadeMedida.id"}
               editorType="dxSelectBox"
-              // editorOptions={{
-              //   dataSource: unidadeMedidas,
-              //   displayExpr: "props.unidadeMedida.nomenclatura",
-              //   customItemCreateEvent: "change",
-              //   valueExpr: "props.unidadeMedida.nomenclatura",
-              //   placeholder: "Selecione a unidade de medida",
-              // }}
               editorOptions={{
-                dataSource: unidadeMedidasData,
-                displayExpr: "props.nomenclatura",
-                value: "props.nomenclatura",
-                valueExpr: "_id.value",
+                dataSource: unidadeMedidas,
+                displayExpr: "unidadeMedida.nomenclatura",
                 customItemCreateEvent: "change",
+                valueExpr: "unidadeMedida.id",
                 placeholder: "Selecione a unidade de medida",
               }}
             />
@@ -141,7 +128,7 @@ export default function Materiais() {
         </Editing>
         <FilterRow visible={true} />
 
-        <ColumnChooser enabled={true} mode={"select"} />
+        <ColumnChooser enabled={true} mode={"select"}  />
 
         <SearchPanel visible={true} />
 
@@ -165,7 +152,6 @@ export default function Materiais() {
           width={"auto"}
           caption={"Descrição"}
         />
-
         <Column
           dataField={"props.valor"}
           width={"auto"}
@@ -188,19 +174,15 @@ export default function Materiais() {
           dataType={"number"}
         />
         <Column
+          dataField={"props.unidadeMedida.id"}
+          showInColumnChooser={false}
+          visible={false}
+        />
+        <Column
           caption={"Unidade Medida"}
           dataField={"props.unidadeMedida.nomenclatura"}
           width={"auto"}
         >
-          {/* <FormItem
-            editorType="dxSelectBox"
-            editorOptions={{
-              items: unidadeMedidas,
-              valueExpr: "_id.value",
-              displayExpr: "props.nomenclatura",
-              placeholder: "Selecione a unidade de medida",
-            }}
-          /> */}
         </Column>
       </DataGrid>
     </React.Fragment>
@@ -220,9 +202,8 @@ const store = new CustomStore({
           )}`,
         },
       })
-      .then((data) => {
-        console.log("🚀 ~ file: materiais.tsx:179 ~ .then ~ data:", data);
-
+      .then(({ data }) => {
+        console.log(data);
         return data;
       })
       .catch((err) => {
@@ -244,7 +225,7 @@ const store = new CustomStore({
       valor: props.valor,
       valorUnitario: props.valorUnitario,
       quantidade: props.quantidade,
-      unidadeMedidaId: props.unidadeMedida.nomenclatura,
+      unidadeMedidaId: props.unidadeMedida.id,
     };
     return axios
       .post(`${baseUrl}/materiais`, input, {
@@ -274,7 +255,7 @@ const store = new CustomStore({
       valor: props.valor,
       valorUnitario: props.valorUnitario,
       quantidade: props.quantidade,
-      unidadeMedidaId: props.unidadeMedida?.nomenclatura,
+      unidadeMedidaId: props.unidadeMedida?.id,
     };
     return await axios
       .patch(`${baseUrl}/materiais/${key}`, input, {
@@ -306,55 +287,3 @@ const store = new CustomStore({
 });
 
 const dataSource = new DataSource(store);
-
-const unidadeMedidasStore = new CustomStore({
-  key: "_id.value",
-  byKey: async (key) => {
-    return await axios
-      .get(`${baseUrl}/unidadeMedidas`, {
-        headers: {
-          authorization: `Bearer ${JSON.parse(
-            localStorage.getItem("token") || ""
-          )}`,
-        },
-      })
-      .then((data) => {
-        console.log("🚀 ~ file: materiais.tsx:179 ~ .then ~ data:", data);
-        return data;
-      })
-      .catch((err) => {
-        if (err) {
-          const data = err.response.data.message;
-          if (data.length > 1) {
-            throw new Error(data.toUpperCase());
-          }
-          throw new Error(data.toUpperCase());
-        }
-      });
-  },
-  load: async (loadOptions) => {
-    const token = JSON.parse(localStorage.getItem("token") || "");
-    return await axios
-      .get(`${baseUrl}/unidadeMedidas`, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      })
-      .then((data) => {
-        console.log("🚀 ~ file: materiais.tsx:179 ~ .then ~ data:", data);
-        return data.data;
-      })
-      .catch((err) => {
-        if (err) {
-          const data = err.response.data.message;
-          if (data.length > 1) {
-            throw new Error(data.toUpperCase());
-          }
-          throw new Error(data.toUpperCase());
-        }
-      });
-  },
-  
-});
-
-const unidadeMedidasData = new DataSource(unidadeMedidasStore);
