@@ -175,6 +175,7 @@ export default function Materiais() {
         />
         <Column
           dataField={"props.unidadeMedida.id"}
+          caption={"Unidade Medida"}
           showInColumnChooser={false}
           visible={false}
         />
