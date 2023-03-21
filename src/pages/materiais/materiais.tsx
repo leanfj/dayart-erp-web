@@ -21,11 +21,11 @@ import { SimpleItem } from "devextreme-react/form";
 
 export default function Materiais() {
   const [unidadeMedidas, setUnidadeMedidas] = React.useState([]);
-  const [unidadeMedida, setUnidadeMedida] = React.useState({
-    nomenclatura: "",
-    nome: "",
-    categoria: "",
-  });
+  // const [unidadeMedida, setUnidadeMedida] = React.useState({
+  //   nomenclatura: "",
+  //   nome: "",
+  //   categoria: "",
+  // });
 
   const formatMonetary = useCallback((value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -78,7 +78,7 @@ export default function Materiais() {
 
   return (
     <React.Fragment>
-      <h2 className={"content-block"}>materiais</h2>
+      <h2 className={"content-block"}>Materiais</h2>
 
       <DataGrid
         className={"dx-card wide-card"}
@@ -91,9 +91,9 @@ export default function Materiais() {
         allowColumnResizing={true}
         allowColumnReordering={true}
         width={"100%"}
-        onEditingStart={(e) => {
-          setUnidadeMedida(e.data.props.unidadeMedida);
-        }}
+        // onEditingStart={(e) => {
+        //   setUnidadeMedida(e.data.props.unidadeMedida);
+        // }}
       >
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />

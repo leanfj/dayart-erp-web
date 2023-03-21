@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import CustomStore from "devextreme/data/custom_store";
 import DataSource from "devextreme/data/data_source";
@@ -14,8 +14,16 @@ import DataGrid, {
   ColumnChooser,
   SearchPanel,
   Popup,
+  Form,
   FormItem,
 } from "devextreme-react/data-grid";
+// import { Form } from "devextreme-react";
+import {
+  ButtonItem,
+  EmptyItem,
+  GroupItem,
+  SimpleItem,
+} from "devextreme-react/form";
 
 export default function Produtos() {
   const formatMonetary = useCallback((value: number) => {
@@ -28,41 +36,85 @@ export default function Produtos() {
     }).format(value);
   }, []);
 
-  const [materiais, setMateriais] = React.useState([]);
+  const [materiais, setMateriais] = useState([]);
+  const [isPopupMateriaisVisible, setPopupMateriaisVisibility] = useState(true);
 
-  React.useEffect(() => {
-    async function fetchData() {
-      await axios
-        .get(`${baseUrl}/materiais`, {
-          headers: {
-            authorization: `Bearer ${JSON.parse(
-              localStorage.getItem("token") || ""
-            )}`,
-          },
+  const togglePopup = () => {
+    setPopupMateriaisVisibility(!isPopupMateriaisVisible);
+  };
+
+  const token = JSON.parse(localStorage.getItem("token") || "");
+
+  const fetchMateriais = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${baseUrl}/materiais`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setMateriais(
+        data.map((item: any) => {
+          return {
+            material: {
+              id: item._id.value,
+              titulo: item.props.titulo,
+            },
+          };
         })
-        .then(({ data }) => {
-          setMateriais(data);
-        })
-        .catch((err) => {
-          if (err) {
-            const data = err.response.data.message;
-            if (data.length > 1) {
-              throw new Error(data.toUpperCase());
-            }
-            throw new Error(data.toUpperCase());
-          }
-        });
+      );
+    } catch (error: AxiosError | any) {
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          return {
+            isOk: false,
+            message: error.response.data.message,
+          };
+        }
+      }
+      return {
+        message: error.message,
+      };
     }
-    fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchMateriais();
+  }, []);
+
+  // React.useEffect(() => {
+  //   async function fetchData() {
+  //     await axios
+  //       .get(`${baseUrl}/materiais`, {
+  //         headers: {
+  //           authorization: `Bearer ${JSON.parse(
+  //             localStorage.getItem("token") || ""
+  //           )}`,
+  //         },
+  //       })
+  //       .then(({ data }) => {
+  //         console.log(data);
+  //         setMateriais(data);
+  //       })
+  //       .catch((err) => {
+  //         if (err) {
+  //           const data = err.response.data.message;
+  //           if (data.length > 1) {
+  //             throw new Error(data.toUpperCase());
+  //           }
+  //           throw new Error(data.toUpperCase());
+  //         }
+  //       });
+  //   }
+  //   fetchData();
+  // }, []);
 
   return (
     <React.Fragment>
-      <h2 className={"content-block"}>Produtos</h2>
-
+      <h2 className="content-block">Produtos</h2>
       <DataGrid
-        className={"dx-card wide-card"}
-        dataSource={dataSource as any}
+        className="dx-card wide-card"
+        keyExpr="_id.value"
+        dataSource={dataSource}
         showBorders={false}
         focusedRowEnabled={true}
         defaultFocusedRowIndex={0}
@@ -70,7 +122,7 @@ export default function Produtos() {
         columnHidingEnabled={true}
         allowColumnResizing={true}
         allowColumnReordering={true}
-        width={"100%"}
+        width="100%"
       >
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />
@@ -82,77 +134,70 @@ export default function Produtos() {
           confirmDelete={true}
           useIcons={true}
         >
-          <Popup showTitle={true} title="Cadastre o Produto" />
+          
+          <Popup showTitle={true} title="Cadastro de Produto" />
+          <Form>
+            <GroupItem colCount={2} colSpan={2}>
+              <SimpleItem dataField="props.titulo" />
+              <SimpleItem dataField="props.descricao" />
+              <SimpleItem dataField="props.codigo" />
+              <SimpleItem dataField="props.valorVenda" />
+              <SimpleItem dataField="props.valorCusto" />
+              <SimpleItem dataField="props.prazoProducao" />
+              <ButtonItem
+                colSpan={2}
+                horizontalAlignment="right"
+                buttonOptions={{
+                  text: "Adcionar Materiais",
+                  type: "default",
+                  onClick: togglePopup,
+                }}
+              />
+              <SimpleItem dataField="props.materiais.id" />
+            </GroupItem>
+          </Form>
         </Editing>
         <FilterRow visible={true} />
 
-        <ColumnChooser enabled={true} mode={"select"} />
+        <ColumnChooser enabled={true} mode="select" />
 
         <SearchPanel visible={true} />
 
         <Column
-          dataField={"_id.value"}
-          width={"auto"}
-          caption={"Id"}
+          dataField="_id.value"
           visible={false}
           allowEditing={false}
           formItem={{ visible: false }}
         />
-        <Column dataField={"props.titulo"} width={"auto"} caption={"Titulo"} />
-        <Column
-          dataField={"props.codigo"}
-          width={"auto"}
-          caption={"Código"}
-          allowEditing={false}
-        />
-        <Column
-          dataField={"props.descricao"}
-          width={"auto"}
-          caption={"Descrição"}
-        />
+        <Column dataField="props.titulo" caption="Título" />
+        <Column dataField="props.codigo" caption="Código" />
+        <Column dataField="props.descricao" caption="Descrição" />
 
         <Column
-          dataField={"props.valorVenda"}
-          width={"auto"}
-          caption={"Valor Venda"}
-          dataType={"number"}
+          dataField="props.valorVenda"
+          dataType="number"
           format={formatMonetary}
         />
         <Column
-          dataField={"props.valorCusto"}
-          width={"auto"}
-          caption={"Valor Custo"}
-          dataType={"number"}
+          dataField="props.valorCusto"
+          dataType="number"
           format={formatMonetary}
         />
-        {/* <Column dataField={"props.materiais"} width={"auto"} caption={"Materiais"}>
+        <Column dataField="props.prazoProducao" />
+        <Column dataField="props.materiais.id" visible={false}>
           <FormItem
-            helpText={"Materiais utilizados no produto separado por ;"}
-          />
-        </Column> */}
-        <Column
-          caption={"Materiais"}
-          dataField="props.materiais"
-          visible={false}
-        >
-          <FormItem
-            editorType={"dxTagBox"}
+            editorType="dxDataGrid"
+            colSpan={2}
             editorOptions={{
-              items: materiais,
-              valueExpr: "id",
-              displayExpr: "nome",
-              showSelectionControls: true,
-              showClearButton: true,
-              placeholder: "Selecione os materiais",
+              width: "100%",
+              dataSource: materiais,
+              columns: ["material.id", "material.titulo", "material.descricao"],
+              // valueExpr: "material.id",
+              // displayExpr: "material.titulo",
+              // placeholder: "Selecione os materiais",
             }}
           />
         </Column>
-
-        <Column
-          dataField={"props.prazoProducao"}
-          width={"auto"}
-          caption={"Prazo Producão"}
-        />
       </DataGrid>
     </React.Fragment>
   );
@@ -172,7 +217,8 @@ const store = new CustomStore({
           )}`,
         },
       })
-      .then((data) => {
+      .then(({ data }) => {
+        console.log(data);
         return data;
       })
       .catch((err) => {
@@ -189,7 +235,7 @@ const store = new CustomStore({
   insert: async ({ props }) => {
     return axios
       .post(`${baseUrl}/Produtos`, props)
-      .then((data) => data)
+      .then(({ data }) => data)
       .catch((err) => {
         if (err) {
           const data = err.response.data.message;
