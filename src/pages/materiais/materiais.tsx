@@ -204,7 +204,6 @@ const store = new CustomStore({
         },
       })
       .then(({ data }) => {
-        console.log(data);
         return data;
       })
       .catch((err) => {
@@ -248,7 +247,6 @@ const store = new CustomStore({
       });
   },
   update: async (key, { props }) => {
-    console.log(props);
     const input = {
       titulo: props.titulo,
       codigo: props.codigo,

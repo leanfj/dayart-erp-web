@@ -14,6 +14,35 @@ import { SimpleItem } from "devextreme-react/form";
 export default function MateriaisProduto(props: any) {
   const [materiais, setMateriais] = useState([]);
   const [unidadeMedidas, setUnidadeMedidas] = useState([]);
+  const [materiaisProduto, setMeteriaisProdutos] = useState([]);
+
+  const fecthProduto = useCallback(async () => {
+    try {
+      const { data } = await axios.get(
+        `${baseUrl}/produtos/${props.data.key}`,
+        {
+          headers: {
+            authorization: `Bearer ${JSON.parse(
+              localStorage.getItem("token") || ""
+            )}`,
+          },
+        }
+      );
+      console.log(data)
+    } catch (error: AxiosError | any) {
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          return {
+            isOk: false,
+            message: error.response.data.message,
+          };
+        }
+      }
+      return {
+        message: error.message,
+      };
+    }
+  }, []);
 
   const fetchMateriais = useCallback(async () => {
     try {
@@ -86,6 +115,7 @@ export default function MateriaisProduto(props: any) {
   useEffect(() => {
     fetchMateriais();
     fetchUnidadeMedida();
+    fecthProduto();
   }, []);
 
   return (
@@ -102,11 +132,31 @@ export default function MateriaisProduto(props: any) {
         allowColumnResizing={true}
         allowColumnReordering={true}
         width="100%"
-        onSaving={(e) => {
+        onSaving={async (e) => {
           const produtoId = props.data.key;
-          e.changes[0].data.props.produto = {
-            id: produtoId,
-          };
+          const { material, unidadeMedida } = e.changes[0].data.props;
+
+          return await axios
+            .post(
+              `${baseUrl}/produtos/${produtoId}`,
+              { material, unidadeMedida },
+              {
+                headers: {
+                  authorization: `Bearer ${JSON.parse(
+                    localStorage.getItem("token") || ""
+                  )}`,
+                },
+              }
+            )
+            .catch((err) => {
+              if (err) {
+                const data = err.response.data.message;
+                if (data.length > 1) {
+                  throw new Error(data.toUpperCase());
+                }
+                throw new Error(data.toUpperCase());
+              }
+            });
         }}
       >
         <Editing
@@ -190,38 +240,51 @@ const baseUrl = process.env.REACT_APP_API_URL;
 
 const storeMateriaisProdutos = new CustomStore({
   key: "_id.value",
-  load: async (loadOptions) => {},
-
-  insert: async ({props}) => {
-    const {material, unidadeMedida, produto} = props;
-    // {
-    //     "material": {
-    //         "id": "efba212b-caa6-48ce-b933-07c12c0ecdc5",
-    //         "quantidade": 1
-    //     },
-    //     "unidadeMedida": {
-    //         "id": "f8b1c5ad-bac2-431d-b72b-d9dcc6f15482"
-    //     },
-    //     "produto": {
-    //         "id": "72cb19b2-07a0-4fc2-8d6c-18a8f757328c"
+  load: async (loadOptions) => {
+    // return await axios
+    // .get(`${baseUrl}/produtos/${produto.id}`)
+    // .catch((err) => {
+    //   if (err) {
+    //     const data = err.response.data.message;
+    //     if (data.length > 1) {
+    //       throw new Error(data.toUpperCase());
     //     }
-    // }
-    return await axios
-    .post(`${baseUrl}/produtos/${produto.id}`, {material, unidadeMedida})
-    .catch((err) => {
-      if (err) {
-        const data = err.response.data.message;
-        if (data.length > 1) {
-          throw new Error(data.toUpperCase());
-        }
-        throw new Error(data.toUpperCase());
-      }
-    });
+    //     throw new Error(data.toUpperCase());
+    //   }
+    // });
   },
-  update: async (key, { props }) => {
-    console.log(key, props);
+  insert: async ({ props }) => {
+    // const {material, unidadeMedida, produto} = props;
+    // // {
+    // //     "material": {
+    // //         "id": "efba212b-caa6-48ce-b933-07c12c0ecdc5",
+    // //         "quantidade": 1
+    // //     },
+    // //     "unidadeMedida": {
+    // //         "id": "f8b1c5ad-bac2-431d-b72b-d9dcc6f15482"
+    // //     },
+    // //     "produto": {
+    // //         "id": "72cb19b2-07a0-4fc2-8d6c-18a8f757328c"
+    // //     }
+    // // }
+    // return await axios
+    // .post(`${baseUrl}/produtos/${produto.id}`, {material, unidadeMedida}, {
+    //   headers: {
+    //     authorization: `Bearer ${JSON.parse(
+    //       localStorage.getItem("token") || ""
+    //     )}`,
+    //   },
+    // })
+    // .catch((err) => {
+    //   if (err) {
+    //     const data = err.response.data.message;
+    //     if (data.length > 1) {
+    //       throw new Error(data.toUpperCase());
+    //     }
+    //     throw new Error(data.toUpperCase());
+    //   }
+    // });
   },
-  remove: async (key) => {
-    console.log(key);
-  },
+  update: async (key, { props }) => {},
+  remove: async (key) => {},
 });

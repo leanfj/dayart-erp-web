@@ -90,7 +90,6 @@ export async function createAccount(
       passwordConfirm,
     });
 
-    console.log(result)
     
     return {
       isOk: true,

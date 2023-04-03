@@ -129,7 +129,6 @@ const storeProdutos = new CustomStore({
         },
       })
       .then(({ data }) => {
-        console.log(data);
         return data;
       })
       .catch((err) => {
@@ -144,9 +143,14 @@ const storeProdutos = new CustomStore({
   },
 
   insert: async ({ props }) => {
-    console.log(props);
     return axios
-      .post(`${baseUrl}/produtos`, props)
+      .post(`${baseUrl}/produtos`, props, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
       .then(({ data }) => data)
       .catch((err) => {
         if (err) {
@@ -159,9 +163,14 @@ const storeProdutos = new CustomStore({
       });
   },
   update: async (key, { props }) => {
-    console.log(props);
     return await axios
-      .patch(`${baseUrl}/produtos/${key}`, props)
+      .patch(`${baseUrl}/produtos/${key}`, props, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
       .catch((err) => {
         if (err) {
           const data = err.response.data.message;
@@ -173,7 +182,13 @@ const storeProdutos = new CustomStore({
       });
   },
   remove: async (key) => {
-    return await axios.delete(`${baseUrl}/produtos/${key}`);
+    return await axios.delete(`${baseUrl}/produtos/${key}`, {
+      headers: {
+        authorization: `Bearer ${JSON.parse(
+          localStorage.getItem("token") || ""
+        )}`,
+      },
+    });
   },
 });
 
