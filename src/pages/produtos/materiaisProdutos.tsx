@@ -14,10 +14,11 @@ import { SimpleItem } from "devextreme-react/form";
 export default function MateriaisProduto(props: any) {
   const [materiais, setMateriais] = useState([]);
   const [unidadeMedidas, setUnidadeMedidas] = useState([]);
-  const [materiaisProduto, setMeteriaisProdutos] = useState([]);
+  /* const [materiaisProduto, setMateriaisProdutos] = useState([]); */
 
-  const fecthProduto = useCallback(async () => {
+  /*   const fecthProduto = useCallback(async () => {
     try {
+      console.log(storeMateriaisProdutos);
       const { data } = await axios.get(
         `${baseUrl}/produtos/${props.data.key}`,
         {
@@ -28,7 +29,7 @@ export default function MateriaisProduto(props: any) {
           },
         }
       );
-      console.log(data)
+      setMateriaisProdutos(data.props.materiais);
     } catch (error: AxiosError | any) {
       if (error instanceof AxiosError) {
         if (error.response) {
@@ -43,7 +44,7 @@ export default function MateriaisProduto(props: any) {
       };
     }
   }, []);
-
+ */
   const fetchMateriais = useCallback(async () => {
     try {
       const token = JSON.parse(localStorage.getItem("token") || "");
@@ -115,15 +116,15 @@ export default function MateriaisProduto(props: any) {
   useEffect(() => {
     fetchMateriais();
     fetchUnidadeMedida();
-    fecthProduto();
+    /* fecthProduto(); */
   }, []);
 
   return (
     <React.Fragment>
       <DataGrid
         className="dx-card wide-card"
-        keyExpr=""
-        dataSource={storeMateriaisProdutos}
+        keyExpr="id"
+        dataSource={props.data.data.props.materiais}
         showBorders={true}
         focusedRowEnabled={false}
         defaultFocusedRowIndex={0}
@@ -133,30 +134,36 @@ export default function MateriaisProduto(props: any) {
         allowColumnReordering={true}
         width="100%"
         onSaving={async (e) => {
-          const produtoId = props.data.key;
-          const { material, unidadeMedida } = e.changes[0].data.props;
+          if (e.changes[0].type === "insert") {
+            const produtoId = props.data.key;
+            const { material, quantidade, unidadeMedida }: any =
+              e.changes[0].data;
 
-          return await axios
-            .post(
-              `${baseUrl}/produtos/${produtoId}`,
-              { material, unidadeMedida },
-              {
-                headers: {
-                  authorization: `Bearer ${JSON.parse(
-                    localStorage.getItem("token") || ""
-                  )}`,
-                },
-              }
-            )
-            .catch((err) => {
-              if (err) {
-                const data = err.response.data.message;
-                if (data.length > 1) {
+            await axios
+              .post(
+                `${baseUrl}/produtos/${produtoId}`,
+                { material: { ...material, quantidade }, unidadeMedida },
+                {
+                  headers: {
+                    authorization: `Bearer ${JSON.parse(
+                      localStorage.getItem("token") || ""
+                    )}`,
+                  },
+                }
+              )
+              .catch((err) => {
+                if (err) {
+                  const data = err.response.data.message;
+                  if (data.length > 1) {
+                    throw new Error(data.toUpperCase());
+                  }
                   throw new Error(data.toUpperCase());
                 }
-                throw new Error(data.toUpperCase());
-              }
-            });
+              });
+            /* fecthProduto(); */
+          } else if (e.changes[0].type === "update") {
+          } else if (e.changes[0].type === "remove") {
+          }
         }}
       >
         <Editing
@@ -175,7 +182,7 @@ export default function MateriaisProduto(props: any) {
           />
           <Form>
             <SimpleItem
-              dataField="props.material.id"
+              dataField="material.id"
               colSpan={2}
               editorType="dxSelectBox"
               editorOptions={{
@@ -192,7 +199,7 @@ export default function MateriaisProduto(props: any) {
               }}
             />
             <SimpleItem
-              dataField={"props.unidadeMedida.id"}
+              dataField={"unidadeMedida.id"}
               editorType="dxSelectBox"
               editorOptions={{
                 dataSource: unidadeMedidas,
@@ -202,31 +209,31 @@ export default function MateriaisProduto(props: any) {
                 placeholder: "Selecione a unidade de medida",
               }}
             />
-            <SimpleItem dataField="props.material.quantidade" colSpan={2} />
+            <SimpleItem dataField="quantidade" colSpan={2} />
           </Form>
         </Editing>
         <Column
-          dataField="props.material.id"
+          dataField="material.id"
           caption="Lista de Materiais"
-          showInColumnChooser={false}
-          width="auto"
-          visible={false}
-        ></Column>
-        <Column
-          dataField="props.unidadeMedida.id"
-          caption="Unidade de Medida"
           showInColumnChooser={false}
           width="auto"
           visible={false}
         ></Column>
         <Column caption={"Material"} dataField="material.titulo" width="auto" />
         <Column
+          dataField="unidadeMedida.id"
+          caption="Unidade de Medida"
+          showInColumnChooser={false}
+          width="auto"
+          visible={false}
+        ></Column>
+        <Column
           caption={"Unidade de Medida"}
-          dataField="unidadeMedida.nomemclatura"
+          dataField="unidadeMedida.nomenclatura"
           width="auto"
         />
         <Column
-          dataField="props.material.quantidade"
+          dataField="quantidade"
           caption="Quantidade Material do Produto"
           dataType="number"
           width="auto"
@@ -241,17 +248,51 @@ const baseUrl = process.env.REACT_APP_API_URL;
 const storeMateriaisProdutos = new CustomStore({
   key: "_id.value",
   load: async (loadOptions) => {
+    return await axios
+      .get(`${baseUrl}/produtos`, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
+      .then(({ data }) => {
+        console.log(data);
+        return data;
+      })
+      .catch((err) => {
+        if (err) {
+          const data = err.response.data.message;
+          if (data.length > 1) {
+            throw new Error(data.toUpperCase());
+          }
+          throw new Error(data.toUpperCase());
+        }
+      });
+  },
+  byKey: async (key) => {
     // return await axios
-    // .get(`${baseUrl}/produtos/${produto.id}`)
-    // .catch((err) => {
-    //   if (err) {
-    //     const data = err.response.data.message;
-    //     if (data.length > 1) {
+    //   .get(`${baseUrl}/produtos/${key}`, {
+    //     headers: {
+    //       authorization: `Bearer ${JSON.parse(
+    //         localStorage.getItem("token") || ""
+    //       )}`,
+    //     },
+    //   })
+    //   .then(({ data }) => {
+    //     console.log(data.props.materiais);
+    //     return data.props.materiais;
+    //   })
+    //   .catch((err) => {
+    //     if (err) {
+    //       const data = err.response.data.message;
+    //       if (data.length > 1) {
+    //         throw new Error(data.toUpperCase());
+    //       }
     //       throw new Error(data.toUpperCase());
     //     }
-    //     throw new Error(data.toUpperCase());
-    //   }
-    // });
+    //   });
+    return { id: key };
   },
   insert: async ({ props }) => {
     // const {material, unidadeMedida, produto} = props;

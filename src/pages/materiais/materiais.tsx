@@ -254,7 +254,7 @@ const store = new CustomStore({
       valor: props.valor,
       valorUnitario: props.valorUnitario,
       quantidade: props.quantidade,
-      unidadeMedidaId: props.unidadeMedida?.id,
+      unidade_medida_id: props.unidadeMedida?.id,
     };
     return await axios
       .patch(`${baseUrl}/materiais/${key}`, input, {
