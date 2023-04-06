@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 
 import CustomStore from "devextreme/data/custom_store";
 import DataSource from "devextreme/data/data_source";
 
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 import DataGrid, {
   Column,
@@ -15,25 +15,13 @@ import DataGrid, {
   SearchPanel,
   Popup,
   Form,
-  FormItem,
   MasterDetail,
 } from "devextreme-react/data-grid";
 import { GroupItem, SimpleItem } from "devextreme-react/form";
 import MateriaisProduto from "./materiaisProdutos";
+import formatMonetary from "../../utils/formatMonetary";
 
 export default function Produtos() {
-  const formatMonetary = useCallback((value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      useGrouping: true,
-      minimumSignificantDigits: 3,
-      minimumFractionDigits: 2,
-    }).format(value);
-  }, []);
-
-  useEffect(() => {
-  }, []);
 
   return (
     <React.Fragment>
@@ -97,13 +85,17 @@ export default function Produtos() {
           dataField="props.valorVenda"
           caption="Valor de Venda"
           dataType="number"
-          format={formatMonetary}
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
         />
         <Column
           dataField="props.valorCusto"
           caption="Valor de Custo"
           dataType="number"
-          format={formatMonetary}
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
         />
         <Column dataField="props.prazoProducao" caption="Prazo Produção" />
         <MasterDetail 

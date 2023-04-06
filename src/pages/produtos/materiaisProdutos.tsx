@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import CustomStore from "devextreme/data/custom_store";
+import { createStore } from "devextreme-aspnet-data-nojquery";
 import axios, { AxiosError } from "axios";
 
 import DataGrid, {
@@ -11,40 +11,33 @@ import DataGrid, {
 } from "devextreme-react/data-grid";
 import { SimpleItem } from "devextreme-react/form";
 
+const baseUrl = process.env.REACT_APP_API_URL;
+
 export default function MateriaisProduto(props: any) {
   const [materiais, setMateriais] = useState([]);
   const [unidadeMedidas, setUnidadeMedidas] = useState([]);
-  /* const [materiaisProduto, setMateriaisProdutos] = useState([]); */
+  const [materiaisProduto, setMateriaisProdutos] = useState();
 
-  /*   const fecthProduto = useCallback(async () => {
-    try {
-      console.log(storeMateriaisProdutos);
-      const { data } = await axios.get(
-        `${baseUrl}/produtos/${props.data.key}`,
-        {
-          headers: {
-            authorization: `Bearer ${JSON.parse(
-              localStorage.getItem("token") || ""
-            )}`,
-          },
-        }
-      );
-      setMateriaisProdutos(data.props.materiais);
-    } catch (error: AxiosError | any) {
-      if (error instanceof AxiosError) {
-        if (error.response) {
-          return {
-            isOk: false,
-            message: error.response.data.message,
-          };
-        }
-      }
-      return {
-        message: error.message,
-      };
-    }
-  }, []);
- */
+  const fecthProduto = useCallback(async () => {
+    const storeMateriaisProdutos: any = createStore({
+      key: "id",
+      loadUrl: `${baseUrl}/produtos/${props.data.key}`,
+      insertUrl: `${baseUrl}/produtos/${props.data.key}`,
+      insertMethod: "POST",
+
+      onBeforeSend: (method, ajaxOptions) => {
+        ajaxOptions.headers = {
+          Authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        };
+      },
+    
+    });
+
+    setMateriaisProdutos(storeMateriaisProdutos);
+  }, [materiaisProduto]);
+
   const fetchMateriais = useCallback(async () => {
     try {
       const token = JSON.parse(localStorage.getItem("token") || "");
@@ -116,15 +109,15 @@ export default function MateriaisProduto(props: any) {
   useEffect(() => {
     fetchMateriais();
     fetchUnidadeMedida();
-    /* fecthProduto(); */
+    fecthProduto();
   }, []);
 
   return (
     <React.Fragment>
       <DataGrid
         className="dx-card wide-card"
-        keyExpr="id"
-        dataSource={props.data.data.props.materiais}
+        keyExpr="_id.value"
+        dataSource={materiaisProduto}
         showBorders={true}
         focusedRowEnabled={false}
         defaultFocusedRowIndex={0}
@@ -133,38 +126,16 @@ export default function MateriaisProduto(props: any) {
         allowColumnResizing={true}
         allowColumnReordering={true}
         width="100%"
-        onSaving={async (e) => {
-          if (e.changes[0].type === "insert") {
-            const produtoId = props.data.key;
-            const { material, quantidade, unidadeMedida }: any =
-              e.changes[0].data;
-
-            await axios
-              .post(
-                `${baseUrl}/produtos/${produtoId}`,
-                { material: { ...material, quantidade }, unidadeMedida },
-                {
-                  headers: {
-                    authorization: `Bearer ${JSON.parse(
-                      localStorage.getItem("token") || ""
-                    )}`,
-                  },
-                }
-              )
-              .catch((err) => {
-                if (err) {
-                  const data = err.response.data.message;
-                  if (data.length > 1) {
-                    throw new Error(data.toUpperCase());
-                  }
-                  throw new Error(data.toUpperCase());
-                }
-              });
-            /* fecthProduto(); */
-          } else if (e.changes[0].type === "update") {
-          } else if (e.changes[0].type === "remove") {
-          }
-        }}
+        // onSaving={async (e) => {
+        //   if (e.changes[0].type === "insert") {
+        //     const produtoId = props.data.key;
+        //     const { material, quantidade, unidadeMedida }: any =
+        //       e.changes[0].data;
+        //     /* fecthProduto(); */
+        //   } else if (e.changes[0].type === "update") {
+        //   } else if (e.changes[0].type === "remove") {
+        //   }
+        // }}
       >
         <Editing
           mode="popup"
@@ -242,90 +213,3 @@ export default function MateriaisProduto(props: any) {
     </React.Fragment>
   );
 }
-
-const baseUrl = process.env.REACT_APP_API_URL;
-
-const storeMateriaisProdutos = new CustomStore({
-  key: "_id.value",
-  load: async (loadOptions) => {
-    return await axios
-      .get(`${baseUrl}/produtos`, {
-        headers: {
-          authorization: `Bearer ${JSON.parse(
-            localStorage.getItem("token") || ""
-          )}`,
-        },
-      })
-      .then(({ data }) => {
-        console.log(data);
-        return data;
-      })
-      .catch((err) => {
-        if (err) {
-          const data = err.response.data.message;
-          if (data.length > 1) {
-            throw new Error(data.toUpperCase());
-          }
-          throw new Error(data.toUpperCase());
-        }
-      });
-  },
-  byKey: async (key) => {
-    // return await axios
-    //   .get(`${baseUrl}/produtos/${key}`, {
-    //     headers: {
-    //       authorization: `Bearer ${JSON.parse(
-    //         localStorage.getItem("token") || ""
-    //       )}`,
-    //     },
-    //   })
-    //   .then(({ data }) => {
-    //     console.log(data.props.materiais);
-    //     return data.props.materiais;
-    //   })
-    //   .catch((err) => {
-    //     if (err) {
-    //       const data = err.response.data.message;
-    //       if (data.length > 1) {
-    //         throw new Error(data.toUpperCase());
-    //       }
-    //       throw new Error(data.toUpperCase());
-    //     }
-    //   });
-    return { id: key };
-  },
-  insert: async ({ props }) => {
-    // const {material, unidadeMedida, produto} = props;
-    // // {
-    // //     "material": {
-    // //         "id": "efba212b-caa6-48ce-b933-07c12c0ecdc5",
-    // //         "quantidade": 1
-    // //     },
-    // //     "unidadeMedida": {
-    // //         "id": "f8b1c5ad-bac2-431d-b72b-d9dcc6f15482"
-    // //     },
-    // //     "produto": {
-    // //         "id": "72cb19b2-07a0-4fc2-8d6c-18a8f757328c"
-    // //     }
-    // // }
-    // return await axios
-    // .post(`${baseUrl}/produtos/${produto.id}`, {material, unidadeMedida}, {
-    //   headers: {
-    //     authorization: `Bearer ${JSON.parse(
-    //       localStorage.getItem("token") || ""
-    //     )}`,
-    //   },
-    // })
-    // .catch((err) => {
-    //   if (err) {
-    //     const data = err.response.data.message;
-    //     if (data.length > 1) {
-    //       throw new Error(data.toUpperCase());
-    //     }
-    //     throw new Error(data.toUpperCase());
-    //   }
-    // });
-  },
-  update: async (key, { props }) => {},
-  remove: async (key) => {},
-});

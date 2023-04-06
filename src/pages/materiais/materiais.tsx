@@ -14,29 +14,13 @@ import DataGrid, {
   ColumnChooser,
   SearchPanel,
   Popup,
-  FormItem,
   Form,
 } from "devextreme-react/data-grid";
 import { SimpleItem } from "devextreme-react/form";
+import formatMonetary from "../../utils/formatMonetary";
 
 export default function Materiais() {
   const [unidadeMedidas, setUnidadeMedidas] = React.useState([]);
-  // const [unidadeMedida, setUnidadeMedida] = React.useState({
-  //   nomenclatura: "",
-  //   nome: "",
-  //   categoria: "",
-  // });
-
-  const formatMonetary = useCallback((value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      useGrouping: true,
-      minimumSignificantDigits: 3,
-      minimumFractionDigits: 2,
-    }).format(value);
-  }, []);
-
   const fetchUnidadeMedida = useCallback(async () => {
     try {
       const token = JSON.parse(localStorage.getItem("token") || "");
@@ -128,7 +112,7 @@ export default function Materiais() {
         </Editing>
         <FilterRow visible={true} />
 
-        <ColumnChooser enabled={true} mode={"select"}  />
+        <ColumnChooser enabled={true} mode={"select"} />
 
         <SearchPanel visible={true} />
 
@@ -157,14 +141,18 @@ export default function Materiais() {
           width={"auto"}
           caption={"Valor"}
           dataType={"number"}
-          format={formatMonetary}
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
         />
         <Column
           dataField={"props.valorUnitario"}
           width={"auto"}
           caption={"Valor Unitário"}
           dataType={"number"}
-          format={formatMonetary}
+          format={{
+            formatter: formatMonetary,
+          }}
           allowEditing={false}
         />
         <Column
@@ -183,8 +171,7 @@ export default function Materiais() {
           caption={"Unidade Medida"}
           dataField={"props.unidadeMedida.nomenclatura"}
           width={"auto"}
-        >
-        </Column>
+        ></Column>
       </DataGrid>
     </React.Fragment>
   );
