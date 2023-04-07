@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import CustomStore from "devextreme/data/custom_store";
 import DataSource from "devextreme/data/data_source";
@@ -14,23 +14,55 @@ import DataGrid, {
   ColumnChooser,
   SearchPanel,
   Popup,
-  FormItem,
+  Form,
 } from "devextreme-react/data-grid";
+import { SimpleItem } from "devextreme-react/form";
+import formatMonetary from "../../utils/formatMonetary";
 
 export default function Materiais() {
-  const formatMonetary = useCallback((value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      useGrouping: true,
-      minimumSignificantDigits: 3,
-      minimumFractionDigits: 2,
-    }).format(value);
+  const [unidadeMedidas, setUnidadeMedidas] = React.useState([]);
+  const fetchUnidadeMedida = useCallback(async () => {
+    try {
+      const token = JSON.parse(localStorage.getItem("token") || "");
+      const { data } = await axios.get(`${baseUrl}/unidadeMedidas`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUnidadeMedidas(
+        data.map((item: any) => {
+          return {
+            unidadeMedida: {
+              id: item._id.value,
+              nomenclatura: item.props.nomenclatura,
+              nome: item.props.nome,
+              categoria: item.props.categoria,
+            },
+          };
+        })
+      );
+    } catch (error: AxiosError | any) {
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          return {
+            isOk: false,
+            message: error.response.data.message,
+          };
+        }
+      }
+      return {
+        message: error.message,
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnidadeMedida();
   }, []);
 
   return (
     <React.Fragment>
-      <h2 className={"content-block"}>materiais</h2>
+      <h2 className={"content-block"}>Materiais</h2>
 
       <DataGrid
         className={"dx-card wide-card"}
@@ -43,6 +75,9 @@ export default function Materiais() {
         allowColumnResizing={true}
         allowColumnReordering={true}
         width={"100%"}
+        // onEditingStart={(e) => {
+        //   setUnidadeMedida(e.data.props.unidadeMedida);
+        // }}
       >
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />
@@ -55,6 +90,25 @@ export default function Materiais() {
           useIcons={true}
         >
           <Popup showTitle={true} title="Cadastre o Material" />
+          <Form>
+            <SimpleItem dataField={"props.titulo"} />
+            <SimpleItem dataField={"props.codigo"} />
+            <SimpleItem dataField={"props.descricao"} />
+            <SimpleItem dataField={"props.valor"} />
+            <SimpleItem dataField={"props.valorUnitario"} />
+            <SimpleItem dataField={"props.quantidade"} />
+            <SimpleItem
+              dataField={"props.unidadeMedida.id"}
+              editorType="dxSelectBox"
+              editorOptions={{
+                dataSource: unidadeMedidas,
+                displayExpr: "unidadeMedida.nomenclatura",
+                customItemCreateEvent: "change",
+                valueExpr: "unidadeMedida.id",
+                placeholder: "Selecione a unidade de medida",
+              }}
+            />
+          </Form>
         </Editing>
         <FilterRow visible={true} />
 
@@ -71,27 +125,53 @@ export default function Materiais() {
           formItem={{ visible: false }}
         />
         <Column dataField={"props.titulo"} width={"auto"} caption={"Titulo"} />
-        <Column dataField={"props.codigo"} width={"auto"} caption={"Código"} />
+        <Column
+          dataField={"props.codigo"}
+          width={"auto"}
+          caption={"Código"}
+          allowEditing={false}
+        />
         <Column
           dataField={"props.descricao"}
           width={"auto"}
           caption={"Descrição"}
         />
-
         <Column
           dataField={"props.valor"}
           width={"auto"}
           caption={"Valor"}
           dataType={"number"}
-          format={formatMonetary}
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
         />
         <Column
-          dataField={"props.unidadeMedida"}
+          dataField={"props.valorUnitario"}
           width={"auto"}
-          caption={"Unidade Medida"}
-          dataType={"text"}
-          format={formatMonetary}
+          caption={"Valor Unitário"}
+          dataType={"number"}
+          format={{
+            formatter: formatMonetary,
+          }}
+          allowEditing={false}
         />
+        <Column
+          dataField={"props.quantidade"}
+          width={"auto"}
+          caption={"Quantidade"}
+          dataType={"number"}
+        />
+        <Column
+          dataField={"props.unidadeMedida.id"}
+          caption={"Unidade Medida"}
+          showInColumnChooser={false}
+          visible={false}
+        />
+        <Column
+          caption={"Unidade Medida"}
+          dataField={"props.unidadeMedida.nomenclatura"}
+          width={"auto"}
+        ></Column>
       </DataGrid>
     </React.Fragment>
   );
@@ -101,7 +181,6 @@ const baseUrl = process.env.REACT_APP_API_URL;
 
 const store = new CustomStore({
   key: "_id.value",
-  onRemoved: async (key) => {},
   load: async (loadOptions) => {
     return await axios
       .get(`${baseUrl}/materiais`, {
@@ -111,7 +190,7 @@ const store = new CustomStore({
           )}`,
         },
       })
-      .then((data) => {
+      .then(({ data }) => {
         return data;
       })
       .catch((err) => {
@@ -126,8 +205,17 @@ const store = new CustomStore({
   },
 
   insert: async ({ props }) => {
+    const input = {
+      titulo: props.titulo,
+      codigo: props.codigo,
+      descricao: props.descricao,
+      valor: props.valor,
+      valorUnitario: props.valorUnitario,
+      quantidade: props.quantidade,
+      unidadeMedidaId: props.unidadeMedida.id,
+    };
     return axios
-      .post(`${baseUrl}/materiais`, props, {
+      .post(`${baseUrl}/materiais`, input, {
         headers: {
           authorization: `Bearer ${JSON.parse(
             localStorage.getItem("token") || ""
@@ -146,8 +234,17 @@ const store = new CustomStore({
       });
   },
   update: async (key, { props }) => {
+    const input = {
+      titulo: props.titulo,
+      codigo: props.codigo,
+      descricao: props.descricao,
+      valor: props.valor,
+      valorUnitario: props.valorUnitario,
+      quantidade: props.quantidade,
+      unidade_medida_id: props.unidadeMedida?.id,
+    };
     return await axios
-      .patch(`${baseUrl}/materiais/${key}`, props, {
+      .patch(`${baseUrl}/materiais/${key}`, input, {
         headers: {
           authorization: `Bearer ${JSON.parse(
             localStorage.getItem("token") || ""

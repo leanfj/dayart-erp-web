@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
+import React from "react";
 
 import CustomStore from "devextreme/data/custom_store";
 import DataSource from "devextreme/data/data_source";
 
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 import DataGrid, {
   Column,
@@ -14,27 +14,22 @@ import DataGrid, {
   ColumnChooser,
   SearchPanel,
   Popup,
-  FormItem,
+  Form,
+  MasterDetail,
 } from "devextreme-react/data-grid";
+import { GroupItem, SimpleItem } from "devextreme-react/form";
+import MateriaisProduto from "./materiaisProdutos";
+import formatMonetary from "../../utils/formatMonetary";
 
 export default function Produtos() {
-  const formatMonetary = useCallback((value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      useGrouping: true,
-      minimumSignificantDigits: 3,
-      minimumFractionDigits: 2,
-    }).format(value);
-  }, []);
 
   return (
     <React.Fragment>
-      <h2 className={"content-block"}>Produtos</h2>
-
+      <h2 className="content-block">Produtos</h2>
       <DataGrid
-        className={"dx-card wide-card"}
-        dataSource={dataSource as any}
+        className="dx-card wide-card"
+        keyExpr="_id.value"
+        dataSource={dataSourceProdutos}
         showBorders={false}
         focusedRowEnabled={true}
         defaultFocusedRowIndex={0}
@@ -42,7 +37,7 @@ export default function Produtos() {
         columnHidingEnabled={true}
         allowColumnResizing={true}
         allowColumnReordering={true}
-        width={"100%"}
+        width="100%"
       >
         <Paging defaultPageSize={10} />
         <Pager showPageSizeSelector={true} showInfo={true} />
@@ -54,53 +49,58 @@ export default function Produtos() {
           confirmDelete={true}
           useIcons={true}
         >
-          <Popup showTitle={true} title="Cadastre o Produto" />
+          <Popup showTitle={true} title="Cadastro de Produto" />
+          <Form>
+            <GroupItem colCount={2} colSpan={2}>
+              <SimpleItem dataField="props.titulo" />
+              <SimpleItem dataField="props.descricao" />
+              <SimpleItem dataField="props.codigo" />
+              <SimpleItem dataField="props.valorVenda" />
+              <SimpleItem dataField="props.valorCusto" />
+              <SimpleItem dataField="props.prazoProducao" />
+            </GroupItem>
+          </Form>
         </Editing>
         <FilterRow visible={true} />
 
-        <ColumnChooser enabled={true} mode={"select"} />
+        <ColumnChooser enabled={true} mode="select" />
 
         <SearchPanel visible={true} />
 
         <Column
-          dataField={"_id.value"}
-          width={"auto"}
-          caption={"Id"}
+          dataField="_id.value"
           visible={false}
           allowEditing={false}
           formItem={{ visible: false }}
         />
-        <Column dataField={"props.titulo"} width={"auto"} caption={"Titulo"} />
-        <Column dataField={"props.codigo"} width={"auto"} caption={"Código"} allowEditing={false} />
+        <Column dataField="props.titulo" caption="Título" />
         <Column
-          dataField={"props.descricao"}
-          width={"auto"}
-          caption={"Descrição"}
+          dataField="props.codigo"
+          caption="Código"
+          allowEditing={false}
         />
+        <Column dataField="props.descricao" caption="Descrição" />
 
         <Column
-          dataField={"props.valorVenda"}
-          width={"auto"}
-          caption={"Valor Venda"}
-          dataType={"number"}
-          format={formatMonetary}
+          dataField="props.valorVenda"
+          caption="Valor de Venda"
+          dataType="number"
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
         />
         <Column
-          dataField={"props.valorCusto"}
-          width={"auto"}
-          caption={"Valor Custo"}
-          dataType={"number"}
-          format={formatMonetary}
+          dataField="props.valorCusto"
+          caption="Valor de Custo"
+          dataType="number"
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
         />
-        <Column dataField={"props.materiais"} width={"auto"} caption={"Materiais"}>
-          <FormItem
-            helpText={"Materiais utilizados no produto separado por ;"}
-          />
-        </Column>
-        <Column
-          dataField={"props.prazoProducao"}
-          width={"auto"}
-          caption={"Prazo Producão"}
+        <Column dataField="props.prazoProducao" caption="Prazo Produção" />
+        <MasterDetail 
+          enabled={true}
+          component={MateriaisProduto}
         />
       </DataGrid>
     </React.Fragment>
@@ -109,19 +109,18 @@ export default function Produtos() {
 
 const baseUrl = process.env.REACT_APP_API_URL;
 
-const store = new CustomStore({
+const storeProdutos = new CustomStore({
   key: "_id.value",
-  onRemoved: async (key) => {},
   load: async (loadOptions) => {
     return await axios
-      .get(`${baseUrl}/Produtos`, {
+      .get(`${baseUrl}/produtos`, {
         headers: {
           authorization: `Bearer ${JSON.parse(
             localStorage.getItem("token") || ""
           )}`,
         },
       })
-      .then((data) => {
+      .then(({ data }) => {
         return data;
       })
       .catch((err) => {
@@ -137,8 +136,14 @@ const store = new CustomStore({
 
   insert: async ({ props }) => {
     return axios
-      .post(`${baseUrl}/Produtos`, props)
-      .then((data) => data)
+      .post(`${baseUrl}/produtos`, props, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
+      .then(({ data }) => data)
       .catch((err) => {
         if (err) {
           const data = err.response.data.message;
@@ -150,9 +155,14 @@ const store = new CustomStore({
       });
   },
   update: async (key, { props }) => {
-    console.log(props);
     return await axios
-      .patch(`${baseUrl}/Produtos/${key}`, props)
+      .patch(`${baseUrl}/produtos/${key}`, props, {
+        headers: {
+          authorization: `Bearer ${JSON.parse(
+            localStorage.getItem("token") || ""
+          )}`,
+        },
+      })
       .catch((err) => {
         if (err) {
           const data = err.response.data.message;
@@ -164,8 +174,14 @@ const store = new CustomStore({
       });
   },
   remove: async (key) => {
-    return await axios.delete(`${baseUrl}/Produtos/${key}`);
+    return await axios.delete(`${baseUrl}/produtos/${key}`, {
+      headers: {
+        authorization: `Bearer ${JSON.parse(
+          localStorage.getItem("token") || ""
+        )}`,
+      },
+    });
   },
 });
 
-const dataSource = new DataSource(store);
+const dataSourceProdutos = new DataSource(storeProdutos);
