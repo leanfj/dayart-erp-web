@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { createStore } from "devextreme-aspnet-data-nojquery";
 import axios, { AxiosError } from "axios";
-
+import './materiaisProdutos.scss'
 import DataGrid, {
   Column,
   Editing,
@@ -10,6 +10,7 @@ import DataGrid, {
   Form,
 } from "devextreme-react/data-grid";
 import { SimpleItem } from "devextreme-react/form";
+import formatMonetary from "../../utils/formatMonetary";
 
 const baseUrl = process.env.REACT_APP_API_URL;
 
@@ -32,7 +33,6 @@ export default function MateriaisProduto(props: any) {
           )}`,
         };
       },
-    
     });
 
     setMateriaisProdutos(storeMateriaisProdutos);
@@ -181,6 +181,18 @@ export default function MateriaisProduto(props: any) {
               }}
             />
             <SimpleItem dataField="quantidade" colSpan={2} />
+            <SimpleItem
+              dataField="preco"
+              colSpan={2}
+              editorOptions={{
+                format: {
+                  type: "currency",
+                  precision: 2,
+                  currency: "BRL",
+                  formatter: (value: number) => formatMonetary(value),
+                }
+              }}
+            />
           </Form>
         </Editing>
         <Column
@@ -207,6 +219,16 @@ export default function MateriaisProduto(props: any) {
           dataField="quantidade"
           caption="Quantidade Material do Produto"
           dataType="number"
+          width="auto"
+        />
+        <Column
+          dataField="preco"
+          caption="Preco Material do Produto"
+          dataType="number"
+          allowEditing={false}
+          format={{
+            formatter: (value: number) => formatMonetary(value),
+          }}
           width="auto"
         />
       </DataGrid>
